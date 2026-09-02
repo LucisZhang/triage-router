@@ -278,6 +278,23 @@ three-tier cascade cannot be shown to beat simply running DistilBERT on everythi
 
 > 三层级联 `a_to_b_to_c` 在同一个 n=5,000 子集上确实拿到证书 —— 对 `c_only` 的 system accuracy +0.0216 [+0.0138, +0.0294]、成本降幅 14.27% [9.22%, 18.97%]，对 `a_only` 成本 −$145.10/1k [−$193.08, −$93.50]、macro-F1 +0.0333 [+0.0155, +0.0485] —— 但对 `b2_only` 不成立：成本 −$25.10 [−$53.94, +$4.93]、macro-F1 +0.0053 [−0.0057, +0.0165]，双双跨零。在 n=5,000 的样本量下，无法证明三层级联优于"所有请求直接交给 DistilBERT"。<!-- src: results/frontier/frontier__opv2__cost-2c969255.json -->
 
+One cross-task scenario is reported and explicitly **not certified**. A hash-pinned
+handoff from the external `frontier-forge` repository adds its R1b native-MTP service
+point as a hypothetical terminal arm and re-prices the committed 512-point Tier A CAL
+risk grid under the point assumption that R1b's observed 1-in-20 serving failure rate
+transfers to this task. The grid selects τ=0.8483569229, keeps 32.52% of CAL in Tier A,
+and models **$254.68/1k**. The claim gate refuses certification on four logged grounds:
+R1b consumes source metadata and solves structured action policy rather than
+narrative-only classification, no joint per-row CAL predictions exist, the failure rate
+rests on 20 serving requests under a different task contract, and no TEST evaluation is
+produced. The within-task Wilson 95% interval on 1/20 failures alone moves the selected
+coverage from 3.33% to 73.21%, so the number is a deployment hypothesis, not a result.
+The certified `a_to_b` headline is unchanged by it. Reproduce:
+`make frontier-forge-scenario`.
+<!-- src: results/external_tiers/frontier_forge_r1b_cal_scenario.json -->
+
+> 另有一个跨任务 scenario，明确不发证。一次 hash 固定的 handoff 把外部 `frontier-forge` 仓库的 R1b native-MTP 服务点作为假想的终端分支接入，在"R1b 实测的 1/20 服务失败率可迁移到本任务"这一点假设下，对已提交的 512 点 Tier A CAL risk grid 重新定价。网格选出 τ=0.8483569229，把 32.52% 的 CAL 留在 Tier A，建模成本 $254.68/1k。claim gate 以四条已记录的理由拒绝发证：R1b 消费 source metadata、解决的是结构化 action policy 而非纯叙述文本分类；不存在逐行配对的 CAL 预测；失败率只来自另一份任务契约下的 20 次服务请求；且没有产出任何 TEST 评测。仅 1/20 失败的任务内 Wilson 95% 区间就能把选中的 coverage 从 3.33% 推到 73.21%，所以这个数字是部署假设，不是结果。已认证的 `a_to_b` headline 不受它影响。复现：`make frontier-forge-scenario`。<!-- src: results/external_tiers/frontier_forge_r1b_cal_scenario.json -->
+
 The v1 threshold derivation is kept as a documented failure. Fitting τ on raw CAL
 probabilities and shipping it into the deployment model's isotonic-compressed
 probability space lost 5–16 points of realized coverage on TEST: `a_to_human` full-slice
